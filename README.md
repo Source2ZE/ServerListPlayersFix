@@ -1,5 +1,5 @@
-# AuthSessionFix / Player count bug fix
-Since the kilowatt update the dedicated servers stopped properly calling EndAuthSession on client disconnect which would cause the player count to not go down in the A2S responses (server browser), this plugin aims to fix that by hooking NotifyClientDisconnect and calling EndAuthSession manually.
+# ServerListPlayersFix
+Populates the user information inside the steam api, as a result this fixes the players not showing up in the server browser.
 
 ## Manual building example
 
