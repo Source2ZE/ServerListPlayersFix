@@ -22,8 +22,8 @@
 #include <iserver.h>
 #include <steam/steam_gameserver.h>
 #include "utils/module.h"
+#include "schemasystem/schemasystem.h"
 #include <funchook.h>
-#include "cs2_sdk/cschemasystem.h"
 #include "cs2_sdk/entity/cbaseplayercontroller.h"
 
 class GameSessionConfiguration_t { };
@@ -83,7 +83,7 @@ bool ServerListPlayersFix::Load(PluginId id, ISmmAPI *ismm, char *error, size_t 
 	GET_V_IFACE_ANY(GetServerFactory, gameclients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pSchemaSystem2, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_ANY(GetEngineFactory, g_pNetworkServerService, INetworkServerService, NETWORKSERVERSERVICE_INTERFACE_VERSION);
-	GET_V_IFACE_CURRENT(GetEngineFactory, g_pGameResourceServiceServer, IGameResourceServiceServer, GAMERESOURCESERVICESERVER_INTERFACE_VERSION);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pGameResourceServiceServer, IGameResourceService, GAMERESOURCESERVICESERVER_INTERFACE_VERSION);
 
 	g_SMAPI->AddListener( this, this );
 
@@ -183,7 +183,7 @@ const char *ServerListPlayersFix::GetLicense()
 
 const char *ServerListPlayersFix::GetVersion()
 {
-	return "1.0.0.0";
+	return "1.0.1";
 }
 
 const char *ServerListPlayersFix::GetDate()
