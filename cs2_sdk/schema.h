@@ -44,7 +44,7 @@ struct SchemaKey
 	bool networked;
 };
 
-class Z_CBaseEntity;
+class CBaseEntity;
 
 constexpr uint32_t val_32_const = 0x811c9dc5;
 constexpr uint32_t prime_32_const = 0x1000193;

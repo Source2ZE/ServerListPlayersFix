@@ -50,16 +50,6 @@ IServerGameClients* gameclients = NULL;
 CSchemaSystem* g_pSchemaSystem2 = nullptr;
 CGameEntitySystem* g_pEntitySystem = nullptr;
 
-CGlobalVars* GetGameGlobals()
-{
-	INetworkGameServer* server = g_pNetworkServerService->GetIGameServer();
-
-	if (!server)
-		return nullptr;
-
-	return g_pNetworkServerService->GetIGameServer()->GetGlobals();
-}
-
 CGameEntitySystem* GameEntitySystem()
 {
 #ifdef WIN32
@@ -108,7 +98,7 @@ bool ServerListPlayersFix::Unload(char *error, size_t maxlen)
 
 void ServerListPlayersFix::UpdatePlayers()
 {
-	auto gpGlobals = GetGameGlobals();
+	auto gpGlobals = engine->GetServerGlobals();
 	g_pEntitySystem = GameEntitySystem();
 
 	if(!gpGlobals)
@@ -119,7 +109,7 @@ void ServerListPlayersFix::UpdatePlayers()
 		auto steamId = engine->GetClientSteamID(CPlayerSlot(i));
 		if (steamId)
 		{
-			auto controller = (CBasePlayerController*)g_pEntitySystem->GetBaseEntity(CEntityIndex(i+1));
+			auto controller = (CBasePlayerController*)g_pEntitySystem->GetEntityInstance(CEntityIndex(i+1));
 			if(controller)
 				g_steamAPI.SteamGameServer()->BUpdateUserData(*steamId, controller->GetPlayerName(), gameclients->GetPlayerScore(CPlayerSlot(i)));
 		}
