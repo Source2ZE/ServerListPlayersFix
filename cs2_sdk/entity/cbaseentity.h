@@ -27,7 +27,5 @@ class CBaseEntity : public CEntityInstance
 {
 public:
 	// This is a unique case as CBaseEntity is already defined in the sdk
-	typedef CBaseEntity ThisClass;
-	static constexpr const char *ThisClassName = "CBaseEntity";
-	static constexpr bool IsStruct = false;
+	DECLARE_SCHEMA_CLASS(CBaseEntity)
 };
