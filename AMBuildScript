@@ -43,7 +43,9 @@ def ResolveMMSRoot():
   if builder.options.mms_path:
     prenormalized_path = builder.options.mms_path
   else:
-    prenormalized_path = ResolveEnvPath('MMSOURCE112', 'mmsource-1.12')
+    prenormalized_path = ResolveEnvPath('MMSOURCE20', 'mmsource-2.0')
+    if not prenormalized_path:
+      prenormalized_path = ResolveEnvPath('MMSOURCE112', 'mmsource-1.12')
     if not prenormalized_path:
       prenormalized_path = ResolveEnvPath('MMSOURCE111', 'mmsource-1.11')
     if not prenormalized_path:
@@ -54,7 +56,7 @@ def ResolveMMSRoot():
       prenormalized_path = ResolveEnvPath('MMSOURCE_DEV', 'mmsource-central')
   if not prenormalized_path or not os.path.isdir(prenormalized_path):
     raise Exception('Could not find a source copy of Metamod:Source')
-
+  
   return os.path.abspath(os.path.normpath(prenormalized_path))
 
 mms_root = ResolveMMSRoot()
