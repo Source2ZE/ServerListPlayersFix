@@ -21,6 +21,7 @@ jobs:
         with:
           path: ServerListPlayersFix
           submodules: recursive
+          fetch-depth: 0
 
       - name: Checkout Metamod
         uses: actions/checkout@v4
@@ -47,12 +48,18 @@ jobs:
         run: |
           cd ambuild && python setup.py install && cd ..
 
+      - name: Install Clang 16
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          apt update && apt install -y clang-16
+          ln -sf /usr/bin/clang-16 /usr/bin/clang && ln -sf /usr/bin/clang++-16 /usr/bin/clang++
+
       - name: Build
         working-directory: ServerListPlayersFix
         shell: bash
         run: |
           mkdir build && cd build
-          python ../configure.py --enable-optimize --symbol-files --sdks cs2 --hl2sdk-manifests hl2sdk-manifests
+          python ../configure.py --enable-optimize --sdks cs2
           ambuild
 
       - name: Upload artifact
@@ -60,3 +67,36 @@ jobs:
         with:
           name: ${{ runner.os }}
           path: ServerListPlayersFix/build/package
+
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Package
+        run: |
+          version=`echo $GITHUB_REF | sed "s/refs\/tags\///"`
+          ls -Rall
+          if [ -d "./Linux/" ]; then
+            cd ./Linux/
+            tar -czf ../${{ github.event.repository.name }}-${version}-linux.tar.gz *
+            cd -
+          fi
+          if [ -d "./Windows/" ]; then
+            cd ./Windows/
+            zip -r ../${{ github.event.repository.name }}-${version}-windows.zip *
+            cd -
+          fi
+
+      - name: Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ github.event.repository.name }}-*
+          tag: ${{ github.ref }}
+          file_glob: true
