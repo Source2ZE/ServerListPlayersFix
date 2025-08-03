@@ -47,7 +47,6 @@ CSteamGameServerAPIContext g_steamAPI;
 IServerGameDLL* server = NULL;
 IVEngineServer* engine = NULL;
 IServerGameClients* gameclients = NULL;
-CSchemaSystem* g_pSchemaSystem2 = nullptr;
 CGameEntitySystem* g_pEntitySystem = nullptr;
 
 CGameEntitySystem* GameEntitySystem()
@@ -71,7 +70,7 @@ bool ServerListPlayersFix::Load(PluginId id, ISmmAPI *ismm, char *error, size_t 
 	GET_V_IFACE_ANY(GetServerFactory, server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
 	GET_V_IFACE_ANY(GetServerFactory, gameclients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
-	GET_V_IFACE_CURRENT(GetEngineFactory, g_pSchemaSystem2, CSchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_ANY(GetEngineFactory, g_pNetworkServerService, INetworkServerService, NETWORKSERVERSERVICE_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_pGameResourceServiceServer, IGameResourceService, GAMERESOURCESERVICESERVER_INTERFACE_VERSION);
 
@@ -173,7 +172,7 @@ const char *ServerListPlayersFix::GetLicense()
 
 const char *ServerListPlayersFix::GetVersion()
 {
-	return "1.0.1";
+	return "1.0.2";
 }
 
 const char *ServerListPlayersFix::GetDate()

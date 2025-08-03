@@ -1,7 +1,7 @@
 /**
  * =============================================================================
  * CS2Fixes
- * Copyright (C) 2023 Source2ZE
+ * Copyright (C) 2023-2025 Source2ZE
  * =============================================================================
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -19,116 +19,113 @@
 
 #include "schema.h"
 
-#include "schemasystem/schemasystem.h"
-#include "tier1/utlmap.h"
-#include "tier0/memdbgon.h"
-#include "../utils/plat.h"
 #include "entity/cbaseentity.h"
+#include "../utils/plat.h"
+#include "schemasystem/schemasystem.h"
 
-extern CSchemaSystem *g_pSchemaSystem2;
-extern CGlobalVars *gpGlobals;
+#include "tier0/memdbgon.h"
 
-using SchemaKeyValueMap_t = CUtlMap<uint32_t, SchemaKey>;
-using SchemaTableMap_t = CUtlMap<uint32_t, SchemaKeyValueMap_t*>;
-
+using SchemaKeyValueMap_t = std::map<uint32_t, SchemaKey>;
+using SchemaTableMap_t = std::map<uint32_t, SchemaKeyValueMap_t>;
 
 static bool IsFieldNetworked(SchemaClassFieldData_t& field)
 {
-    for (int i = 0; i < field.m_nStaticMetadataCount; i++)
-    {
-        static auto networkEnabled = hash_32_fnv1a_const("MNetworkEnable");
-        if (networkEnabled == hash_32_fnv1a_const(field.m_pStaticMetadata[i].m_pszName))
-            return true;
-    }
+	for (int i = 0; i < field.m_nStaticMetadataCount; i++)
+	{
+		static auto networkEnabled = hash_32_fnv1a_const("MNetworkEnable");
+		if (networkEnabled == hash_32_fnv1a_const(field.m_pStaticMetadata[i].m_pszName))
+			return true;
+	}
 
-    return false;
-}   
+	return false;
+}
 
-static bool InitSchemaFieldsForClass(SchemaTableMap_t *tableMap, const char* className, uint32_t classKey)
+static bool InitSchemaFieldsForClass(SchemaTableMap_t& tableMap, const char* className, uint32_t classKey)
 {
-    CSchemaSystemTypeScope* pType = g_pSchemaSystem2->FindTypeScopeForModule(MODULE_PREFIX "server" MODULE_EXT);
+	CSchemaSystemTypeScope* pType = g_pSchemaSystem->FindTypeScopeForModule(MODULE_PREFIX "server" MODULE_EXT);
 
-    if (!pType)
-        return false;
+	if (!pType)
+		return false;
 
-    SchemaClassInfoData_t *pClassInfo = pType->FindDeclaredClass(className).Get();
+	SchemaClassInfoData_t* pClassInfo = pType->FindDeclaredClass(className).Get();
 
-    if (!pClassInfo)
-    {
-        SchemaKeyValueMap_t *map = new SchemaKeyValueMap_t(0, 0, DefLessFunc(uint32_t));
-        tableMap->Insert(classKey, map);
+	if (!pClassInfo)
+	{
+		SchemaKeyValueMap_t map;
+		tableMap.insert(std::make_pair(classKey, map));
 
-        Warning("InitSchemaFieldsForClass(): '%s' was not found!\n", className);
-        return false;
-    }
+		Warning("InitSchemaFieldsForClass(): '%s' was not found!\n", className);
+		return false;
+	}
 
-    short fieldsSize = pClassInfo->m_nFieldCount;
-    SchemaClassFieldData_t* pFields = pClassInfo->m_pFields;
+	short fieldsSize = pClassInfo->m_nFieldCount;
+	SchemaClassFieldData_t* pFields = pClassInfo->m_pFields;
 
-    SchemaKeyValueMap_t *keyValueMap = new SchemaKeyValueMap_t(0, 0, DefLessFunc(uint32_t));
-    keyValueMap->EnsureCapacity(fieldsSize);
-    tableMap->Insert(classKey, keyValueMap);
+	SchemaKeyValueMap_t &keyValueMap = tableMap.insert(std::make_pair(classKey, SchemaKeyValueMap_t())).first->second;
 
-    for (int i = 0; i < fieldsSize; ++i)
-    {
-        SchemaClassFieldData_t& field = pFields[i];
+	for (int i = 0; i < fieldsSize; ++i)
+	{
+		SchemaClassFieldData_t& field = pFields[i];
 
 #ifdef _DEBUG
-		Message("%s::%s found at -> 0x%X - %llx\n", className, field.m_name, field.m_single_inheritance_offset, &field);
+		Message("%s::%s found at -> 0x%X - %llx\n", className, field.m_pszName, field.m_nSingleInheritanceOffset, &field);
 #endif
 
-        keyValueMap->Insert(hash_32_fnv1a_const(field.m_pszName), {field.m_nSingleInheritanceOffset, IsFieldNetworked(field)});
-    }
+		std::pair<uint32_t, SchemaKey> keyValuePair;
+		keyValuePair.first = hash_32_fnv1a_const(field.m_pszName);
+		keyValuePair.second.offset = field.m_nSingleInheritanceOffset;
+		keyValuePair.second.networked = IsFieldNetworked(field);
 
-    return true;
+		keyValueMap.insert(keyValuePair);
+	}
+
+	return true;
 }
 
 int16_t schema::FindChainOffset(const char* className)
 {
-    CSchemaSystemTypeScope* pType = g_pSchemaSystem2->FindTypeScopeForModule(MODULE_PREFIX "server" MODULE_EXT);
+	CSchemaSystemTypeScope* pType = g_pSchemaSystem->FindTypeScopeForModule(MODULE_PREFIX "server" MODULE_EXT);
 
-    if (!pType)
-        return false;
+	if (!pType)
+		return false;
 
-    SchemaClassInfoData_t* pClassInfo = pType->FindDeclaredClass(className).Get();
+	SchemaClassInfoData_t* pClassInfo = pType->FindDeclaredClass(className).Get();
 
-    do
-    {
-        SchemaClassFieldData_t* pFields = pClassInfo->m_pFields;
-        short fieldsSize = pClassInfo->m_nFieldCount;
-        for (int i = 0; i < fieldsSize; ++i)
-        {
-            SchemaClassFieldData_t& field = pFields[i];
+	do
+	{
+		SchemaClassFieldData_t* pFields = pClassInfo->m_pFields;
+		short fieldsSize = pClassInfo->m_nFieldCount;
+		for (int i = 0; i < fieldsSize; ++i)
+		{
+			SchemaClassFieldData_t& field = pFields[i];
 
-            if (V_strcmp(field.m_pszName, "__m_pChainEntity") == 0)
-            {
-                return field.m_nSingleInheritanceOffset;
-            }
-        }
-    } while ((pClassInfo = pClassInfo->m_pBaseClasses ? pClassInfo->m_pBaseClasses->m_pClass : nullptr) != nullptr);
+			if (V_strcmp(field.m_pszName, "__m_pChainEntity") == 0)
+				return field.m_nSingleInheritanceOffset;
+		}
+	} while ((pClassInfo = pClassInfo->m_pBaseClasses ? pClassInfo->m_pBaseClasses->m_pClass : nullptr) != nullptr);
 
-    return 0;
+	return 0;
 }
 
 SchemaKey schema::GetOffset(const char* className, uint32_t classKey, const char* memberName, uint32_t memberKey)
 {
-	static SchemaTableMap_t schemaTableMap(0, 0, DefLessFunc(uint32_t));
-	int16_t tableMapIndex = schemaTableMap.Find(classKey);
-    if (!schemaTableMap.IsValidIndex(tableMapIndex))
-    {
-        if (InitSchemaFieldsForClass(&schemaTableMap, className, classKey))
-            return GetOffset(className, classKey, memberName, memberKey);
+	static SchemaTableMap_t schemaTableMap;
 
-        return { 0, 0 };
-    }
+	if (!schemaTableMap.contains(classKey))
+	{
+		if (InitSchemaFieldsForClass(schemaTableMap, className, classKey))
+			return GetOffset(className, classKey, memberName, memberKey);
 
-    SchemaKeyValueMap_t *tableMap = schemaTableMap[tableMapIndex];
-	int16_t memberIndex = tableMap->Find(memberKey);
-    if (!tableMap->IsValidIndex(memberIndex))
-    {
-        Warning("schema::GetOffset(): '%s' was not found in '%s'!\n", memberName, className);
-        return { 0, 0 };
-    }
+		return {0, 0};
+	}
 
-    return tableMap->Element(memberIndex);
+	SchemaKeyValueMap_t tableMap = schemaTableMap[classKey];
+
+	if (!tableMap.contains(memberKey))
+	{
+		Warning("schema::GetOffset(): '%s' was not found in '%s'!\n", memberName, className);
+		return {0, 0};
+	}
+
+	return tableMap[memberKey];
 }
