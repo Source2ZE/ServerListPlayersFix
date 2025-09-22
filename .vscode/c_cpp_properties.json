@@ -1,0 +1,51 @@
+{
+  "configurations": [
+    {
+      "name": "Default|x64",
+      "includePath": [
+        "${workspaceFolder}",
+        "${workspaceFolder}/../metamod-source/core",
+        "${workspaceFolder}/../metamod-source/core/sourcehook",
+        "${workspaceFolder}/../hl2sdk-cs2/thirdparty/protobuf-3.21.8/src",
+        "${workspaceFolder}/../hl2sdk-cs2/public",
+        "${workspaceFolder}/../hl2sdk-cs2/public/engine",
+        "${workspaceFolder}/../hl2sdk-cs2/public/mathlib",
+        "${workspaceFolder}/../hl2sdk-cs2/public/tier0",
+        "${workspaceFolder}/../hl2sdk-cs2/public/tier1",
+        "${workspaceFolder}/../hl2sdk-cs2/public/entity2",
+        "${workspaceFolder}/../hl2sdk-cs2/public/game/server",
+        "${workspaceFolder}/../hl2sdk-cs2/game/shared",
+        "${workspaceFolder}/../hl2sdk-cs2/common",
+        "${workspaceFolder}/../hl2sdk-cs2/public/",
+        "${workspaceFolder}/build/serverlistplayersfix_mm/linux-x86_64",
+        "${workspaceFolder}/vendor/funchook/include",
+        "${workspaceFolder}/cs2_sdk"
+      ],
+      "defines": [
+        "META_IS_SOURCE2",
+        "POSIX",
+        "COMPILER_GCC",
+        "stricmp=strcasecmp",
+        "_stricmp=strcasecmp",
+        "_snprintf=snprintf",
+        "_vsnprintf=vsnprintf",
+        "HAVE_STDINT_H",
+        "GNUC",
+        "LINUX",
+        "_LINUX",
+        "POSIX",
+        "_FILE_OFFSET_BITS=64",
+        "SE_CS2=25",
+        "META_IS_SOURCE2",
+        "SOURCE_ENGINE=25",
+        "COMPILER_GCC",
+        "X64BITS",
+        "PLATFORM_64BITS"
+      ],
+      "compilerPath": "clang-16",
+      "cStandard": "c17",
+      "cppStandard": "c++20"
+    }
+  ],
+  "version": 4
+}

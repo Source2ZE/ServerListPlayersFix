@@ -41,7 +41,8 @@ public:
 	SCHEMA_FIELD(uint64, m_steamID)
 	SCHEMA_FIELD_POINTER(char, m_iszPlayerName)
 	SCHEMA_FIELD(PlayerConnectedState, m_iConnected)
-
+	
 	const char *GetPlayerName() { return m_iszPlayerName(); }
 	bool IsConnected() { return m_iConnected() == PlayerConnectedState::PlayerConnected; }
+	bool IsBot() { return m_steamID == 0; }
 };

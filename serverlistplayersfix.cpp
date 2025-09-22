@@ -110,7 +110,21 @@ void ServerListPlayersFix::UpdatePlayers()
 		{
 			auto controller = (CBasePlayerController*)g_pEntitySystem->GetEntityInstance(CEntityIndex(i+1));
 			if(controller)
+			{
+				if (!controller->IsConnected())
+				{
+					continue;
+				}
+
+				META_CONPRINTF("%s IsBot %s!\n", controller->GetPlayerName(), controller->IsBot() ? "true" : "false");
+
+				if (controller->IsBot())
+				{
+					continue;
+				}
+
 				g_steamAPI.SteamGameServer()->BUpdateUserData(*steamId, controller->GetPlayerName(), gameclients->GetPlayerScore(CPlayerSlot(i)));
+			}
 		}
 	}
 }
@@ -172,7 +186,7 @@ const char *ServerListPlayersFix::GetLicense()
 
 const char *ServerListPlayersFix::GetVersion()
 {
-	return "1.0.4";
+	return "1.0.5 (No Bots)";
 }
 
 const char *ServerListPlayersFix::GetDate()
