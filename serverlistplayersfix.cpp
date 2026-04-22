@@ -100,7 +100,7 @@ void ServerListPlayersFix::UpdatePlayers()
 	auto gpGlobals = engine->GetServerGlobals();
 	g_pEntitySystem = GameEntitySystem();
 
-	if(!gpGlobals)
+	if(!gpGlobals || !g_pEntitySystem)
 		return;
 
 	for (int i = 0; i < gpGlobals->maxClients; i++)
@@ -126,7 +126,6 @@ void ServerListPlayersFix::Hook_GameFrame(bool simulating, bool bFirstTick, bool
 		
 		g_flNextUpdate = curtime + 5.0;
 	}
-
 }
 
 void ServerListPlayersFix::AllPluginsLoaded()

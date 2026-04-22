@@ -22,20 +22,27 @@
 #include "entity/cbaseentity.h"
 #include "../utils/plat.h"
 #include "schemasystem/schemasystem.h"
+#include "entity2/entityclass.h"
 
 #include "tier0/memdbgon.h"
 
 using SchemaKeyValueMap_t = std::map<uint32_t, SchemaKey>;
 using SchemaTableMap_t = std::map<uint32_t, SchemaKeyValueMap_t>;
 
-static bool IsFieldNetworked(SchemaClassFieldData_t& field)
+static bool IsFieldNetworked(const char* cppName, SchemaClassFieldData_t& field)
 {
-	for (int i = 0; i < field.m_nStaticMetadataCount; i++)
-	{
-		static auto networkEnabled = hash_32_fnv1a_const("MNetworkEnable");
-		if (networkEnabled == hash_32_fnv1a_const(field.m_pStaticMetadata[i].m_pszName))
-			return true;
-	}
+	if (!GameEntitySystem())
+		return false;
+
+	// Just use a random class to get access to the full database, as some schema classes don't have entity representations
+	CNetworkSerializerCodeGenDatabase* pDatabase = GameEntitySystem()->FindClassByName("CBaseEntity")->m_NetworkSerializerInfo->m_pDatabase;
+	int index = pDatabase->m_ClassInfos.Find(cppName);
+
+	if (index == pDatabase->m_ClassInfos.InvalidIndex())
+		return false;
+
+	if (pDatabase->m_ClassInfos[index]->FindField(field.m_pszName))
+		return true;
 
 	return false;
 }
@@ -74,7 +81,7 @@ static bool InitSchemaFieldsForClass(SchemaTableMap_t& tableMap, const char* cla
 		std::pair<uint32_t, SchemaKey> keyValuePair;
 		keyValuePair.first = hash_32_fnv1a_const(field.m_pszName);
 		keyValuePair.second.offset = field.m_nSingleInheritanceOffset;
-		keyValuePair.second.networked = IsFieldNetworked(field);
+		keyValuePair.second.networked = IsFieldNetworked(pClassInfo->m_pszName, field);
 
 		keyValueMap.insert(keyValuePair);
 	}
