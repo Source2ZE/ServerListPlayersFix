@@ -81,7 +81,7 @@ static bool InitSchemaFieldsForClass(SchemaTableMap_t& tableMap, const char* cla
 		std::pair<uint32_t, SchemaKey> keyValuePair;
 		keyValuePair.first = hash_32_fnv1a_const(field.m_pszName);
 		keyValuePair.second.offset = field.m_nSingleInheritanceOffset;
-        keyValuePair.second.networked = IsFieldNetworked(pClassInfo->m_pszName, field);
+		keyValuePair.second.networked = IsFieldNetworked(pClassInfo->m_pszName, field);
 
 		keyValueMap.insert(keyValuePair);
 	}
