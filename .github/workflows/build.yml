@@ -35,10 +35,10 @@ jobs:
           path: mmsource-2.0
           submodules: recursive
 
-      - name: Checkout HL2SDK
+      - name: Checkout s2sdk
         uses: actions/checkout@v7
         with:
-          repository: alliedmodders/hl2sdk
+          repository: alliedmodders/s2sdk
           ref: cs2
           path: hl2sdk-cs2
 
@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.name }}
-          path: ServerListPlayersFix/build/package
+          path: ServerListPlayersFix/build/package/cs2
 
   release:
     name: Release

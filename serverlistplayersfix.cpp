@@ -19,17 +19,16 @@
 
 #include <stdio.h>
 #include "serverlistplayersfix.h"
-#include <iserver.h>
+#include "engine2/ivengineserver2.h"
 #include <steam/steam_gameserver.h>
 #include "utils/module.h"
 #include "schemasystem/schemasystem.h"
 #include "cs2_sdk/entity/cbaseplayercontroller.h"
+#include "version_gen.h"
 
 class GameSessionConfiguration_t { };
 
 KHook::Virtual<IServerGameDLL, void, bool, bool, bool> gameFrameHook(&IServerGameDLL::GameFrame, &g_ServerListPlayersFix, nullptr, &ServerListPlayersFix::Hook_GameFrame);
-KHook::Virtual<IServerGameDLL, void> gameServerSteamAPIActivatedHook(&IServerGameDLL::GameServerSteamAPIActivated, &g_ServerListPlayersFix, &ServerListPlayersFix::Hook_GameServerSteamAPIActivated, nullptr);
-KHook::Virtual<IServerGameDLL, void> gameServerSteamAPIDeactivatedHook(&IServerGameDLL::GameServerSteamAPIDeactivated, &g_ServerListPlayersFix, &ServerListPlayersFix::Hook_GameServerSteamAPIDeactivated, nullptr);
 
 #ifdef _WIN32
 #define ROOTBIN "/bin/win64/"
@@ -42,22 +41,10 @@ KHook::Virtual<IServerGameDLL, void> gameServerSteamAPIDeactivatedHook(&IServerG
 
 ServerListPlayersFix g_ServerListPlayersFix;
 ICvar *icvar = NULL;
-CSteamGameServerAPIContext g_steamAPI;
 IServerGameDLL* server = NULL;
 IVEngineServer* engine = NULL;
 IServerGameClients* gameclients = NULL;
 CGameEntitySystem* g_pEntitySystem = nullptr;
-
-CGameEntitySystem* GameEntitySystem()
-{
-#ifdef WIN32
-	static int offset = 88;
-#else
-	static int offset = 80;
-#endif
-	return *reinterpret_cast<CGameEntitySystem**>((uintptr_t)(g_pGameResourceServiceServer)+offset);
-}
-
 
 PLUGIN_EXPOSE(ServerListPlayersFix, g_ServerListPlayersFix);
 bool ServerListPlayersFix::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -76,8 +63,6 @@ bool ServerListPlayersFix::Load(PluginId id, ISmmAPI *ismm, char *error, size_t 
 	g_SMAPI->AddListener( this, this );
 
 	gameFrameHook.Add(server);
-	gameServerSteamAPIActivatedHook.Add(g_pSource2Server);
-	gameServerSteamAPIDeactivatedHook.Add(g_pSource2Server);
 
 	g_pCVar = icvar;
 	ConVar_Register( FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_GAMEDLL );
@@ -88,8 +73,6 @@ bool ServerListPlayersFix::Load(PluginId id, ISmmAPI *ismm, char *error, size_t 
 bool ServerListPlayersFix::Unload(char *error, size_t maxlen)
 {
 	gameFrameHook.Remove(server);
-	gameServerSteamAPIActivatedHook.Remove(g_pSource2Server);
-	gameServerSteamAPIDeactivatedHook.Remove(g_pSource2Server);
 
 	return true;
 }
@@ -99,7 +82,7 @@ void ServerListPlayersFix::UpdatePlayers()
 	auto gpGlobals = engine->GetServerGlobals();
 	g_pEntitySystem = GameEntitySystem();
 
-	if(!gpGlobals || !g_pEntitySystem)
+	if(!gpGlobals || !g_pEntitySystem || !SteamGameServer())
 		return;
 
 	for (int i = 0; i < gpGlobals->maxClients; i++)
@@ -109,7 +92,7 @@ void ServerListPlayersFix::UpdatePlayers()
 		{
 			auto controller = (CBasePlayerController*)g_pEntitySystem->GetEntityInstance(CEntityIndex(i+1));
 			if(controller)
-				g_steamAPI.SteamGameServer()->BUpdateUserData(*steamId, controller->GetPlayerName(), gameclients->GetPlayerScore(CPlayerSlot(i)));
+				SteamGameServer()->BUpdateUserData(*steamId, controller->GetPlayerName(), gameclients->GetPlayerScore(CPlayerSlot(i)));
 		}
 	}
 }
@@ -131,18 +114,6 @@ KHook::Return<void> ServerListPlayersFix::Hook_GameFrame(IServerGameDLL* pThis, 
 
 void ServerListPlayersFix::AllPluginsLoaded()
 {
-}
-
-KHook::Return<void> ServerListPlayersFix::Hook_GameServerSteamAPIActivated(IServerGameDLL* pThis)
-{
-	g_steamAPI.Init();
-
-	return {KHook::Action::Ignore};
-}
-
-KHook::Return<void> ServerListPlayersFix::Hook_GameServerSteamAPIDeactivated(IServerGameDLL* pThis)
-{
-	return {KHook::Action::Ignore};
 }
 
 void ServerListPlayersFix::OnLevelInit(char const* pMapName,
@@ -170,12 +141,12 @@ bool ServerListPlayersFix::Unpause(char *error, size_t maxlen)
 
 const char *ServerListPlayersFix::GetLicense()
 {
-	return "GPLv3";
+	return PLUGIN_LICENSE;
 }
 
 const char *ServerListPlayersFix::GetVersion()
 {
-	return "2.0";
+	return PLUGIN_FULL_VERSION;
 }
 
 const char *ServerListPlayersFix::GetDate()
@@ -185,25 +156,25 @@ const char *ServerListPlayersFix::GetDate()
 
 const char *ServerListPlayersFix::GetLogTag()
 {
-	return "ServerListPlayersFix";
+	return PLUGIN_LOGTAG;
 }
 
 const char *ServerListPlayersFix::GetAuthor()
 {
-	return "Poggu";
+	return PLUGIN_AUTHOR;
 }
 
 const char *ServerListPlayersFix::GetDescription()
 {
-	return "Populates user information in the steam api";
+	return PLUGIN_DESCRIPTION;
 }
 
 const char *ServerListPlayersFix::GetName()
 {
-	return "ServerListPlayersFix";
+	return PLUGIN_DISPLAY_NAME;
 }
 
 const char *ServerListPlayersFix::GetURL()
 {
-	return "https://poggu.me";
+	return PLUGIN_URL;
 }
