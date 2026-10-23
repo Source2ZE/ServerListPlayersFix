@@ -23,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          path: ServerListPlayersFix
+          path: SLPF
           submodules: recursive
           fetch-depth: 0
 
@@ -54,7 +54,7 @@ jobs:
         run: pip install setuptools && cd ambuild && python setup.py install && cd ..
 
       - name: Build
-        working-directory: ServerListPlayersFix
+        working-directory: SLPF
         shell: bash
         run: |
           mkdir build && cd build
@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.name }}
-          path: ServerListPlayersFix/build/package/cs2
+          path: SLPF/build/package/cs2
 
   release:
     name: Release
