@@ -17,6 +17,7 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "module.h"
 #include "plat.h"
 
 #include "tier0/memdbgon.h"

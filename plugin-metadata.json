@@ -1,0 +1,11 @@
+{
+	"name": "serverlistplayersfix_mm",
+	"alias": "serverlistplayersfix",
+	"display_name": "ServerListPlayersFix",
+	"description": "Populates user information in the steam api",
+	"author": "Poggu",
+	"url": "https://poggu.me",
+	"log_tag": "ServerListPlayersFix",
+	"license": "GPLv3",
+	"version": "{{git-tag}}-{{git-commits-after-tag}}-{{git-shorthash}}"
+}
