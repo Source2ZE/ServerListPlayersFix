@@ -25,6 +25,8 @@ for sdk_target in MMSPlugin.sdk_targets:
     'cs2_sdk/schema.cpp',
     os.path.join(sdk['path'], 'entity2', 'entitysystem.cpp'),
     os.path.join(sdk['path'], 'entity2', 'entityidentity.cpp'),
+    os.path.join(sdk['path'], 'entity2', 'entitykeyvalues.cpp'),
+    os.path.join(sdk['path'], 'tier0_perproject', 'keyvalues3.cpp'),
   ]
 
   binary.custom = [builder.tools.Protoc(protoc = sdk_target.protoc, sources = [
